@@ -1,0 +1,21 @@
+services:
+  - docker
+
+before_install:
+  - docker build -t nonkung51/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true nonkung51/react-test npm run test
+
+after_success:
+  - docker build -t nonkung51/multi-client ./client
+  - docker build -t nonkung51/multi-nginx ./nginx
+  - docker build -t nonkung51/multi-server ./server
+  - docker build -t nonkung51/multi-worker ./worker
+  # Login to docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Push image to docker hub
+  - docker push nonkung51/multi-client 
+  - docker push nonkung51/multi-worker 
+  - docker push nonkung51/multi-nginx
+  - docker push nonkung51/multi-server 
